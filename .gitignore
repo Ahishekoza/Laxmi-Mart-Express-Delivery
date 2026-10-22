@@ -69,3 +69,6 @@ uploads/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+#======= backend/.claude/path/ ======
+backend/.claude/path/*
