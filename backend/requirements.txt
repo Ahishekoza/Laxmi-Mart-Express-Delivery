@@ -1,0 +1,42 @@
+# --- Web framework & server ---
+fastapi
+uvicorn[standard]
+gunicorn
+
+# --- Database (PostgreSQL + SQLAlchemy) ---
+sqlalchemy
+psycopg2-binary
+alembic
+
+# --- Validation & configuration ---
+pydantic
+pydantic-settings
+email-validator
+python-dotenv
+
+# --- Authentication & security (Auth0, JWT, bcrypt) ---
+PyJWT[crypto]
+bcrypt
+httpx
+slowapi
+
+# --- Image storage (AWS S3) ---
+boto3
+Pillow
+
+# --- Real-time events (Kafka) ---
+aiokafka
+
+# --- Caching & sessions (Redis) ---
+redis
+
+# --- Notifications (email / SMS) ---
+fastapi-mail
+twilio
+
+# --- Logging ---
+python-json-logger
+
+# --- Testing ---
+pytest
+pytest-asyncio
