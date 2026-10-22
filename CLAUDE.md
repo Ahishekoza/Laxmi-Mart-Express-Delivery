@@ -204,6 +204,21 @@ Each status change triggers a notification to the customer.
 - Notification Services
 - Real-Time Event Processing
 
+### Folder Structure
+
+```text
+backend/
+├── .claude/              # Claude Code configuration for the backend
+├── app.py                # FastAPI application entry point
+├── requirements.txt      # Python dependencies
+├── controller/           # Business logic / service layer
+├── database/
+│   └── db.py             # SQLAlchemy engine, session & DB connection setup
+├── model/                # SQLAlchemy ORM models (database tables)
+├── router/               # API routes / endpoints (presentation layer)
+└── schema/               # Pydantic request & response schemas (validation)
+```
+
 ---
 
 ## Database
