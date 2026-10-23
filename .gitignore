@@ -1,0 +1,74 @@
+# ===== Python (backend) =====
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Bytecode and caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Packaging and build output
+*.egg-info/
+*.egg
+build/
+dist/
+
+# Test coverage
+.coverage
+htmlcov/
+.tox/
+
+# Logs
+logs/
+*.log
+
+# Local database files
+*.db
+*.sqlite3
+pgdata/
+
+# ===== Frontend (React) =====
+
+node_modules/
+frontend/dist/
+frontend/build/
+.npm/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.vite/
+
+# ===== Secrets and environment config =====
+
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ===== Local uploads (images are stored in AWS S3) =====
+
+uploads/
+
+# ===== Claude Code local settings (machine-specific) =====
+
+.claude/settings.local.json
+
+# ===== Editors and OS files =====
+
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+#=======/.claude/plan/ ======
+backend/.claude/plan
