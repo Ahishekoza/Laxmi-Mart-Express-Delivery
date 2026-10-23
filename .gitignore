@@ -70,5 +70,5 @@ uploads/
 Thumbs.db
 desktop.ini
 
-#======= backend/.claude/plan/ ======
-.claude/plan/
+#=======/.claude/plan/ ======
+backend/.claude/plan
