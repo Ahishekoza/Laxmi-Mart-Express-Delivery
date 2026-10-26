@@ -209,15 +209,50 @@ Each status change triggers a notification to the customer.
 ```text
 backend/
 ├── .claude/              # Claude Code configuration for the backend
+│   ├── specs/            # Feature specs (e.g. 01-database-setup.md)
+│   └── plan/             # Implementation plans (01-database-setup, 02-model-setup)
+├── .env                  # Local environment variables (not committed)
 ├── app.py                # FastAPI application entry point
+├── config.py             # Pydantic Settings: env-based config (cached get_settings())
 ├── requirements.txt      # Python dependencies
-├── controller/           # Business logic / service layer
+├── controller/           # Business logic / service layer (empty - not yet implemented)
 ├── database/
+│   ├── __init__.py       # Re-exports engine, SessionLocal, get_db, session_scope, check_database_connection
 │   └── db.py             # SQLAlchemy engine, session & DB connection setup
-├── model/                # SQLAlchemy ORM models (database tables)
-├── router/               # API routes / endpoints (presentation layer)
-└── schema/               # Pydantic request & response schemas (validation)
+├── model/                # SQLAlchemy ORM models (one file per table)
+│   ├── __init__.py       # Imports every model so Base.metadata is complete (for Alembic)
+│   ├── base.py           # Base, naming convention, PrimaryKeyMixin/CreatedAtMixin/TimestampMixin
+│   ├── enums.py          # OrderStatus, PaymentStatus, NotificationChannel, enum_column()
+│   └── <table>.py        # address, audit_log, cart, cart_item, category, inventory,
+│                         # notification, order, order_item, order_status_history,
+│                         # payment, product, product_image, role, user
+├── router/               # API routes / endpoints (empty - not yet implemented)
+└── schema/               # Pydantic request & response schemas (empty - not yet implemented)
 ```
+
+### Implementation Status
+
+| Area | Status |
+|---|---|
+| Config (`config.py`) | Done - env-driven, fails fast on missing/invalid `DATABASE_URL` |
+| DB engine/session layer | Done - pooled engine, `get_db` dependency, `session_scope`, connection check |
+| ORM models | Done - 15 tables (see Database section) |
+| `app.py` | Minimal - startup DB check, `GET /` and `GET /health/db` only |
+| Alembic migrations | Not started (`alembic` is in requirements; no `alembic/` folder yet) |
+| Schemas, repositories, controllers, routers | Not started |
+| Auth0/JWT, Kafka, Redis, S3, email/SMS | Dependencies listed in `requirements.txt`; no code yet |
+| Tests | Not started (`pytest`, `pytest-asyncio` in requirements) |
+
+### Backend Conventions (as implemented)
+
+- **Imports** are relative to `backend/` (e.g. `from model import Base`, `from database import get_db`); run commands from `backend/` with `.venv` active.
+- **Configuration** comes only from environment variables / `.env` via `config.get_settings()`. Variables: `DATABASE_URL` (must be `postgresql://` or `postgresql+psycopg2://`), `DB_POOL_SIZE` (10), `DB_MAX_OVERFLOW` (20), `DB_POOL_TIMEOUT` (30), `DB_POOL_RECYCLE` (1800), `DB_ECHO` (false), `ENVIRONMENT` (development).
+- **Sessions**: obtain them only via `get_db` (request handlers) or `session_scope()` (startup, scripts, Kafka consumers). Both commit on success, roll back on any exception, and always close. Never import `SessionLocal` directly in application code.
+- **Health**: `GET /health/db` returns `{"status": "ok"}` or 503; the app refuses to start if the DB is unreachable.
+- **Models**: SQLAlchemy 2.x typed style (`Mapped[...]`/`mapped_column`); `BIGINT` autoincrement `id`; `TIMESTAMPTZ` (UTC) timestamps; money is `Numeric(10, 2)`/`Decimal`; relationships are lazy by default, using `TYPE_CHECKING` imports to avoid circular imports; DB-level cascades use `passive_deletes=True`.
+- **Constraint naming**: deterministic `NAMING_CONVENTION` on `Base.metadata` (`ix_`, `uq_`, `ck_`, `fk_`, `pk_` prefixes); CHECK constraints are named by the model (e.g. `ck_products_price_non_negative`).
+- **Enums** are stored as `VARCHAR` + named CHECK (not native PostgreSQL ENUM) via `enum_column()`, persisting the enum value.
+- **Snapshots**: `orders.shipping_*` and `order_items.*_snapshot` copy data at order time and must not be updated afterwards (enforced in the service layer).
 
 ---
 
@@ -225,19 +260,31 @@ backend/
 
 ### PostgreSQL Tables
 
-Recommended tables:
+Implemented as SQLAlchemy models in `backend/model/`:
 
-- Users
-- Roles
-- Products
-- Categories
-- Inventory
-- Cart
-- Orders
-- OrderItems
-- Payments
-- Notifications
-- AuditLogs
+Column definitions live in `backend/.claude/specs/01-database-setup.md`.
+
+- `roles` (`Role`)
+- `users` (`User`)
+- `addresses` (`Address`)
+- `categories` (`Category`)
+- `products` (`Product`)
+- `product_images` (`ProductImage`)
+- `inventory` (`Inventory`)
+- `carts` (`Cart`)
+- `cart_items` (`CartItem`)
+- `orders` (`Order`)
+- `order_items` (`OrderItem`)
+- `order_status_history` (`OrderStatusHistory`)
+- `payments` (`Payment`)
+- `notifications` (`Notification`)
+- `audit_logs` (`AuditLog`)
+
+### Enums
+
+- `OrderStatus`: `PENDING`, `IN_PROCESS`, `IN_TRANSIT`, `DELIVERED`, `CANCELLED`
+- `PaymentStatus`: `PENDING`, `SUCCESS`, `FAILED`, `REFUNDED`
+- `NotificationChannel`: `EMAIL`, `SMS`, `PUSH`, `IN_APP`
 
 ---
 
